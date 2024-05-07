@@ -6,7 +6,7 @@
 # set path #
 ############
 
-setwd("C:/Users/emery/OneDrive - KU Leuven/Own Work/Method development Bayesian statistics")
+setwd("")
 
 #############
 # Libraries #
@@ -84,7 +84,7 @@ res = function(rt1, rt2){
 
 ## Load historical data ##
 # retention times
-rt_struct <- read_excel("./Experiments/Experimental Setup.xlsx", 
+rt_struct <- read_excel("./Experimental Setup.xlsx", 
                        sheet = "structuredKULlip")
 rt_struct$rt = as.numeric(rt_struct$rt)
 rt_struct$S = as.numeric(rt_struct$S)
@@ -92,7 +92,7 @@ rt_struct$compound = as.numeric(factor(rt_struct$compound))
 
 
 # logP and nHBDon
-data <- read_excel("./Experiments/Experimental Setup.xlsx", 
+data <- read_excel("./Experimental Setup.xlsx", 
                       sheet = "historical compounds lip")
 logP = as.numeric(data$logP)
 nHBDon = as.numeric(data$nHBDon)
@@ -183,7 +183,7 @@ coefqm
 
 #Prediction of new compounds 
 
-data <- read_excel("./Experiments/Experimental Setup.xlsx", 
+data <- read_excel("./Experimental Setup.xlsx", 
                    sheet = "Compounds lip")
 logP = as.numeric(data$logP)
 nHBDon = as.numeric(data$nHBDon)
@@ -408,7 +408,7 @@ for ( j in 1:Nsubj ) {
 
 # load retention times
 # slope, rt, compound name or ID
-myData = read_xlsx("./Experiments/Experimental Setup.xlsx", sheet = "structured KUL lip") # Read the data file; result is a data.frame.
+myData = read_xlsx("./Experimental Setup.xlsx", sheet = "structured KUL lip") # Read the data file; result is a data.frame.
 myData$S = as.numeric(myData$S)
 myData$compound = as.numeric(factor(myData$compound))
 myData$rt = as.numeric(myData$rt)
@@ -952,53 +952,3 @@ ggsave(filename = "exp3_summary.svg",path = "./Experiments/Figures/highLogPexp/E
 
 which.max(acquisition_fun)
 predx[which.max(acquisition_fun)]
-
-## Comparison without prior ## 
-# only possible after 4 experiments
-y = rts_gradients[,slope_nums]
-x = slopes[slope_nums]
-coeffs = matrix(0, nrow(y), 4)
-# regression for every compound in list
-for (i in 1:nrow(y)){
-  rts = y[i, ]
-  coeff = fitQ(x, rts)
-  coeffs[i, ] = coeff
-}
-
-
-models = matrix(0,Nsubj,length(predx))
-for (i in 1:Nsubj){
-  models[i,] = coeffs[i,1] + coeffs[i,2]*predx + coeffs[i,3]*predx^2 + coeffs[i,4]*predx^3
-}
-
-
-# visualize retention models 
-models_gg = data.frame(predx,t(models))
-
-data_long <- melt(models_gg, id = "predx")
-predx = rep(slopes,Nsubj)
-predy = as.vector(t(rts_gradients[1:Nsubj,]))
-
-color = c(rep("X1",17),rep("X2",17),rep("X3",17),rep("X4",17),rep("X5",17),rep("X6",17))
-preddata = data.frame(predy, predx, color)
-
-expx = rep(x,Nsubj)
-expy = as.vector(t(y[1:Nsubj,]))
-expdata = data.frame(expx, expy )
-
-g <- ggplot(data_long,            
-            aes(x = predx,
-                y = value,
-                color = variable)) + labs(x = "slope", y = "rt") +  geom_line() +
-  theme(legend.position = "none") +
-  geom_point(data = preddata, aes(x = predx, y = predy, color = color)) +
-  geom_point(data = expdata, aes(x = expx, y = expy), colour = "red")
-g
-
-ggsave(filename = "exp5_freq_fit.png",path = "./Experiments/Figures/allCompexp/Experiment 5/", device='png', dpi=300)
-
-
-library(xlsx)
-write.xlsx(coeffs, "C:/Users/emery/OneDrive - KU Leuven/Own Work/Method development Bayesian statistics/Experiments/Figures/highLogPexp/New data/model_coeffs_compl.xlsx", sheetName="Sheet1")
-
-d
